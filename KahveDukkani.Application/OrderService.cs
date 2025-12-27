@@ -17,23 +17,16 @@ public class OrderService
 
     public Guid CreateOrder(CreateOrderRequest request)
     {
-        // 1. Adresi oluştur
         var address = new Address(request.Street, request.City, request.ZipCode);
 
-        // 2. Siparişi oluştur
         var order = new Order(address);
 
-        // 3. İstekteki ürünleri dön ve ekle
         foreach (var itemRequest in request.Items)
         {
-            // Fiyatı veritabanından bulmamız lazım (Basitlik olsun diye şimdilik sabit veriyorum)
-            // Normalde: _productRepository.GetPrice(itemRequest.ProductName) yapılır.
-            decimal productPrice = 50; // Şimdilik her kahve 50 TL olsun :)
+            decimal productPrice = 50;
 
-            // Adet kadar ekle (Döngüyle)
             for (int i = 0; i < itemRequest.Quantity; i++)
             {
-                // STOK KONTROLÜNÜ BURADA YAPABİLİRSİN (Önceki dersteki mantık)
                 var stock = _stockRepository.GetByName(itemRequest.ProductName);
                 if (stock != null)
                 {
@@ -46,10 +39,9 @@ public class OrderService
 
         order.ApplyCampaigns();
 
-        // 4. Kaydet
         _repository.Add(order);
         _repository.SaveChanges();
-        _stockRepository.SaveChanges(); // Stok düştüyse onu da kaydet
+        _stockRepository.SaveChanges();
 
         return order.Id;
     }
@@ -113,28 +105,21 @@ public class OrderService
 
     public List<OrderDto> GetOrders()
     {
-        // 1. Repository'den tüm siparişleri, içindeki ürünlerle (Include) beraber çekiyoruz.
         var orders = _repository.GetAll();
 
-        // 2. Domain Nesnesini (Order) -> Transfer Nesnesine (DTO) çeviriyoruz.
         var orderDtos = orders.Select(order => new OrderDto
         {
             Id = order.Id,
-            Status = order.Status.ToString(), // Enum'ı string'e çevir
-
-            // Veritabanında olmayan ama DTO'da göstermek istediğimiz hesaplama:
+            Status = order.Status.ToString(),
             OriginalPrice = order.Items.Sum(x => x.Price),
 
-            // Domain'den gelen veriler:
             DiscountAmount = order.DiscountAmount,
-            TotalPrice = order.TotalPrice, // Bu zaten (Original - Discount) olarak Domain'de hesaplı geliyor
+            TotalPrice = order.TotalPrice,
 
             OrderDate = order.OrderDate,
 
-            // Value Object (Address) içindeki alanları birleştirip tek string yapıyoruz:
             FullAddress = $"{order.ShippingAddress.Street}, {order.ShippingAddress.City} ({order.ShippingAddress.ZipCode})",
 
-            // İç içe listeyi (Items) de çevirmemiz lazım:
             Items = order.Items.Select(item => new OrderItemDto
             {
                 ProductName = item.ProductName,
