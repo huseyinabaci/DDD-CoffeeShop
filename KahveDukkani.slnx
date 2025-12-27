@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Project Path="KahveDukkani.Application/KahveDukkani.Application.csproj" />
+  <Project Path="KahveDukkani.Domain/KahveDukkani.Domain.csproj" />
+  <Project Path="KahveDukkani.Infrastructure/KahveDukkani.Infrastructure.csproj" />
+  <Project Path="KahveDukkani/KahveDukkani.API.csproj" />
+</Solution>
